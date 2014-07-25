@@ -7,11 +7,11 @@ FROM phusion/baseimage
 MAINTAINER Zaicheng Qi <vmlinz@gmail.com>
 
 # Update system
-# Install haproxy from ubuntu ppa
+# Install haproxy and pen from ubuntu ppa
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common unzip
 RUN add-apt-repository -y ppa:vbernat/haproxy-1.5
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y haproxy
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y haproxy pen
 RUN sed -i -e 's/ENABLED=0/ENABLED=1/' /etc/default/haproxy
 
 # Install shadowsocks python implementation
@@ -21,14 +21,8 @@ RUN pip install shadowsocks
 # Install supervisor
 RUN pip install supervisor
 
-#VOLUME ["/etc/haproxy"]
-#VOLUME ["/etc/supervisor/conf.d"]
-#VOLUME ["/etc/shadowsocks.d"]
-
-ADD conf/supervisor-proxy.conf /etc/supervisor/conf.d/supervisor-proxy.conf
-ADD conf/haproxy.cfg /etc/haproxy/haproxy.cfg
-ADD conf/shadowsocks /etc/shadowsocks.d
-ADD conf/cowrc /etc/cowrc
+# Volume to hold configuration files
+VOLUME ["/etc/sscluster"]
 
 RUN mkdir -p /opt/cow
 WORKDIR /opt/cow
@@ -44,4 +38,4 @@ EXPOSE 58117
 EXPOSE 58118
 EXPOSE 58119
 
-CMD ["supervisord", "-n"]
+CMD ["supervisord", "-n", "-c /etc/sscluster/supervisor-proxy.conf"]
